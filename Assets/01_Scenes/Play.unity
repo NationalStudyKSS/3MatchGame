@@ -170,7 +170,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -206,6 +206,7 @@ GameObject:
   - component: {fileID: 330585545}
   - component: {fileID: 330585544}
   - component: {fileID: 330585547}
+  - component: {fileID: 330585548}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -331,6 +332,22 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!114 &330585548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 330585543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56666c5a40171f54783dd416a44f42bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.Physics2DRaycaster
+  m_EventMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_MaxRayIntersections: 0
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -487,9 +504,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b065836ff32abf54382a441e99000f8b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Board
+  _tilePrefab: {fileID: 2964916676824661887, guid: 89de7d3a5096a1e4d91b1c401540e5d7, type: 3}
+  _tileSprites:
+  - {fileID: 21300000, guid: b7481a4c424715542a70ac1efc7468db, type: 3}
+  - {fileID: 21300000, guid: a292bddf8693e00428dace4a7f770aa6, type: 3}
+  - {fileID: 21300000, guid: fbb6c45b2e0f5424cace793121f03e56, type: 3}
+  - {fileID: 21300000, guid: 5b0c287fddf11b24d910a6b285ee1807, type: 3}
+  - {fileID: 21300000, guid: 50dd2e8acaa7426438d693e39eb73026, type: 3}
+  - {fileID: 21300000, guid: 140169fe467b8b649aa2541e0c8d6c09, type: 3}
   _boardSize: 8
-  _tilePrefab: {fileID: 8582074878151201256, guid: 89de7d3a5096a1e4d91b1c401540e5d7, type: 3}
-  _tileMover: {fileID: 0}
+  _matchCount: 3
+  _swapDuration: 0.1
+  _fallDuration: 0.2
 --- !u!4 &518369514
 Transform:
   m_ObjectHideFlags: 0
@@ -684,7 +710,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
