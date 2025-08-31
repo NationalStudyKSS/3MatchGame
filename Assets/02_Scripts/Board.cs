@@ -10,8 +10,14 @@ using UnityEngine;
 public class Board : MonoBehaviour
 {
     [Header("----- Component References -----")]
+    [SerializeField] BoardView _boardView;              // 보드 UI컴포넌트
+
     [SerializeField] GameObject _tilePrefab;            // 타일 프리팹
-    [SerializeField] Sprite[] _tileSprites;             // 타일 스프라이트 배열 
+    [SerializeField] Sprite[] _tileSprites;             // 타일 스프라이트 배열
+    [SerializeField] GameObject _explosionEffectPrefab; // 폭발 이펙트 프리팹
+    [SerializeField] AudioClip _explosionSound;         // 폭발 사운드
+    [SerializeField] AudioSource _bgm;                  // 배경음악 오디오 소스
+    [SerializeField] AudioSource _fevertimeBgm;         // 피버타임 배경음악 오디오 소스
 
     [Header("----- Board Settings -----")]
     [SerializeField] int _boardSize = 8;                // 보드 크기 (8x8)
@@ -24,12 +30,17 @@ public class Board : MonoBehaviour
     Tile[,] _tiles;                                     // 타일 배열
     Tile _selectedTile = null;                          // 선택된 타일
     bool _isProcessing = false;                         // 현재 타일 움직임 처리 중인지 여부
+    bool _isFeverTime = false;                          // 피버타임 여부
     float _offsetX;                                     // 보드 오프셋 X
     float _offsetY;                                     // 보드 오프셋 Y
+    int _removedTilecount = 0;                        // 피버타임 체크용 제거된 타일 개수
+    Coroutine _feverCoroutine;                          // 피버타임 코루틴 참조
 
-    public event Action<Tile> OnTileRemoved;            // 타일 제거 이벤트
+    public event Action<int> OnTileRemoved;                  // 타일 제거 이벤트
     public event Action<int> OnScoreChanged;            // 점수 변경 이벤트
     public event Action OnBoardStable;                  // 보드 안정화 이벤트 (모든 처리 완료 후)
+    public event Action OnFeverTimeActivated;           // 피버타임 활성화 이벤트
+    public event Action OnFeverTimeDeactivated;         // 피버타임 비활성화 이벤트
 
     public bool IsProcessing => _isProcessing;
     public int BoardSize => _boardSize;
@@ -37,6 +48,11 @@ public class Board : MonoBehaviour
     void Start()
     {
         InitializeBoard();
+
+        _boardView.Initialize();
+        OnTileRemoved += _boardView.UpdateScore;
+        OnFeverTimeActivated += _boardView.DecreaseFeverTimeBar;
+        OnFeverTimeDeactivated += _boardView.ResetFeverTimeBar;
     }
 
     #region Board Initialization
@@ -532,8 +548,16 @@ public class Board : MonoBehaviour
                 // 타일이 매치된 상태이면
                 if (_tiles[row, col].Model.IsMatched == true)
                 {
+                    // 폭발 이펙트 생성
+                    Instantiate(_explosionEffectPrefab, _tiles[row, col].transform.position, Quaternion.identity);
+                    // 폭발 사운드 재생
+                    AudioSource.PlayClipAtPoint(_explosionSound, Camera.main.transform.position);
+                    // 피버타임 체크용 제거된 타일 개수 증가
+                    if(!_isFeverTime) _removedTilecount++;
+                    // 피버타임 체크
+                    CheckIsFeverTime();
                     // 타일이 제거되었음을 알리는 이벤트 실행
-                    OnTileRemoved?.Invoke(_tiles[row, col]);
+                    OnTileRemoved?.Invoke(_removedTilecount);
                     // 타일 제거(비유하자면 이사짐 빼고 주소도 지운거임...)
                     Destroy(_tiles[row, col].gameObject);
                     // 배열 비워주기(비유하자면 아파트 관리소에 가서 우리집 이사간다고 말한거임...)
@@ -615,6 +639,31 @@ public class Board : MonoBehaviour
                 _tiles[row, c].Model.IsMatched = true;
             }
         }
+    }
+
+    void CheckIsFeverTime()
+    {
+        if (!_isFeverTime && _removedTilecount >= 20)
+        {
+            _isFeverTime = true;
+            _feverCoroutine = StartCoroutine(FeverTimeRoutine());
+        }
+    }
+
+    IEnumerator FeverTimeRoutine()
+    {
+        // 피버타임 음악으로 전환
+        _bgm.Pause();
+        _fevertimeBgm.Play();
+        OnFeverTimeActivated?.Invoke();
+
+        yield return new WaitForSeconds(10f); // 피버타임 지속 시간
+        _isFeverTime = false;
+        _removedTilecount = 0;
+        // 일반 음악으로 전환
+        _fevertimeBgm.Stop();
+        _bgm.Play();
+        OnFeverTimeDeactivated?.Invoke();
     }
 
     #region Utility Methods
